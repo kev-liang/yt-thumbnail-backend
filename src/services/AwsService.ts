@@ -36,7 +36,7 @@ const AwsService = () => {
     try {
       const res = await dynamoDB.put(params).promise();
       console.log('Uploaded', res);
-      getItem();
+      return res;
     } catch (err) {
       console.error('Error uploading:', err);
     }
@@ -57,7 +57,19 @@ const AwsService = () => {
       console.error('Error retrieving item:', error);
     }
   };
-  return { uploadFile, addDataToDB, getItem };
+
+  const update = async (
+    params: aws.DynamoDB.DocumentClient.UpdateItemInput
+  ) => {
+    try {
+      const res = await dynamoDB.update(params).promise();
+      console.log('Updated item:', res);
+      return res;
+    } catch (err) {
+      console.error('Error updating item:', err);
+    }
+  };
+  return { uploadFile, addDataToDB, getItem, update };
 };
 
 export default AwsService;

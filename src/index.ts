@@ -3,28 +3,28 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 
-import FileController from './controllers/FileController';
-import ImageDataRepo from './repo/ImageDataRepo';
+dotenv.config();
 
-console.log(dotenv.config());
+import FileController from './controllers/FileController';
+import TitleController from './controllers/TitleController';
 
 const app = express();
 const port = 5000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 const fileController = FileController();
-const imageDataRepo = ImageDataRepo();
-imageDataRepo.addBaseImageData();
+const titleController = TitleController();
+// const imageDataRepo = ImageDataRepo();
+// imageDataRepo.addBaseImageData();
 
-app.post('/upload', upload.single('file'), fileController.uploadFile);
+app.post('/upload-file', upload.single('file'), fileController.uploadFile);
 
-app.get('/', (req, res) => {
-  res.json({ msg: 'working' });
-});
+app.post('/add-title', titleController.addTitle);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
