@@ -1,7 +1,7 @@
 import AwsService from '../services/AwsService';
+import CONSTS from '../helpers/consts';
 
 const ImageDataRepo = () => {
-  const tableName = 'ImageData';
   const awsService = AwsService();
 
   const addBaseImageData = (
@@ -9,18 +9,40 @@ const ImageDataRepo = () => {
     data: AWS.S3.ManagedUpload.SendData
   ) => {
     const imageData = {
-      UserId: userId,
-      ImageId: data.Key,
-      ImageUrl: data.Location,
-      Titles: [],
-      Tags: [],
-      Folders: [],
-      UploadTimestamp: new Date().toISOString(),
+      TableName: CONSTS.IMAGE_DATA_DB_NAME,
+      Item: {
+        UserId: userId,
+        ImageId: data.Key,
+        ImageUrl: data.Location,
+        Titles: [],
+        Tags: [],
+        Folders: [],
+        UploadTimestamp: new Date().toISOString(),
+      },
     };
-    awsService.addDataToDB(tableName, imageData);
+    try {
+      awsService.addDataToDB(imageData);
+    } catch (err) {
+      throw err;
+    }
   };
 
-  return { addBaseImageData };
+  const getImageData = (userId: string) => {
+    const queryParams = {
+      TableName: CONSTS.IMAGE_DATA_DB_NAME,
+      KeyConditionExpression: 'UserId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+    };
+    try {
+      return awsService.queryRecordsByUserId(userId, queryParams);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return { addBaseImageData, getImageData };
 };
 
 export default ImageDataRepo;

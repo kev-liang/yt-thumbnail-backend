@@ -7,6 +7,7 @@ const FileController = () => {
   const imageDataRepo = ImageDataRepo();
 
   const uploadFile = async (req: Request, res: Response) => {
+    const { userId } = req.body;
     if (!req.file) {
       res.status(400).json({ message: 'No file uploaded.' });
       return;
@@ -15,7 +16,6 @@ const FileController = () => {
       return;
     }
     console.log('Uploading file:', { ...req.file, buffer: undefined });
-    const { userId } = req.body;
     try {
       const data = await awsService.uploadFile(req.file);
       if (data) {
@@ -32,6 +32,7 @@ const FileController = () => {
       res.status(500).json({ message: 'Error uploading file', error });
     }
   };
+
   return { uploadFile };
 };
 

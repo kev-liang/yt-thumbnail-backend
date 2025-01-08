@@ -1,5 +1,5 @@
 import aws from 'aws-sdk';
-import { type ImageData } from '../types';
+import CONSTS from '../helpers/consts';
 
 const AwsService = () => {
   aws.config.update({
@@ -27,11 +27,9 @@ const AwsService = () => {
     }
   };
 
-  const addDataToDB = async (table: string, data: any) => {
-    const params = {
-      TableName: table,
-      Item: data,
-    };
+  const addDataToDB = async (
+    params: aws.DynamoDB.DocumentClient.PutItemInput
+  ) => {
     try {
       const res = await dynamoDB.put(params).promise();
       console.log('Uploaded', res);
@@ -43,7 +41,7 @@ const AwsService = () => {
 
   const getItem = async () => {
     const params = {
-      TableName: 'ImageData',
+      TableName: CONSTS.IMAGE_DATA_DB_NAME,
       Key: {
         UserId: 'test',
       },
@@ -68,7 +66,22 @@ const AwsService = () => {
       console.error('Error updating item:', err);
     }
   };
-  return { uploadFile, addDataToDB, getItem, update };
+
+  const queryRecordsByUserId = async (
+    userId: string,
+    params: aws.DynamoDB.DocumentClient.QueryInput
+  ) => {
+    try {
+      const data = await dynamoDB.query(params).promise();
+      console.log(`Successfully got data for ${userId}: ${data.Items}`);
+      return data;
+    } catch (err) {
+      console.error('Error querying:', err);
+      throw err;
+    }
+  };
+
+  return { uploadFile, addDataToDB, getItem, update, queryRecordsByUserId };
 };
 
 export default AwsService;
