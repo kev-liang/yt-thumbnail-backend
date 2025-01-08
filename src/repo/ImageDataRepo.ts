@@ -4,9 +4,12 @@ const ImageDataRepo = () => {
   const tableName = 'ImageData';
   const awsService = AwsService();
 
-  const addBaseImageData = (data: AWS.S3.ManagedUpload.SendData) => {
+  const addBaseImageData = (
+    userId: string,
+    data: AWS.S3.ManagedUpload.SendData
+  ) => {
     const imageData = {
-      UserId: 'test',
+      UserId: userId,
       ImageId: data.Key,
       ImageUrl: data.Location,
       Titles: [],

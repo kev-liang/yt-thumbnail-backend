@@ -10,14 +10,18 @@ const FileController = () => {
     if (!req.file) {
       res.status(400).json({ message: 'No file uploaded.' });
       return;
+    } else if (!req.body.userId) {
+      res.status(400).json({ message: 'userId is required.' });
+      return;
     }
     console.log('Uploading file:', { ...req.file, buffer: undefined });
+    const { userId } = req.body;
     try {
       const data = await awsService.uploadFile(req.file);
       if (data) {
         console.log('Uploaded', data);
 
-        imageDataRepo.addBaseImageData(data);
+        imageDataRepo.addBaseImageData(userId, data);
 
         res.status(200).json({
           fileUrl: data.Location,
