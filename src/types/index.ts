@@ -5,3 +5,9 @@ export interface ImageData {
   Tags: string[];
   ImageUrl: string;
 }
+
+export interface TitleItem {
+  id: string;
+  title: string;
+  uploadTimestamp: string;
+}

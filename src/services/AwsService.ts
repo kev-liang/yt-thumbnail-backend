@@ -39,19 +39,14 @@ const AwsService = () => {
     }
   };
 
-  const getItem = async () => {
-    const params = {
-      TableName: CONSTS.IMAGE_DATA_DB_NAME,
-      Key: {
-        UserId: 'test',
-      },
-    };
-
+  const batchGet = async (
+    params: aws.DynamoDB.DocumentClient.BatchGetItemInput
+  ) => {
     try {
-      const data = await dynamoDB.get(params).promise();
-      console.log('Retrieved item:', data);
+      const data = await dynamoDB.batchGet(params).promise();
+      return data;
     } catch (error) {
-      console.error('Error retrieving item:', error);
+      console.error('Error batch get:', error);
     }
   };
 
@@ -67,7 +62,7 @@ const AwsService = () => {
     }
   };
 
-  const queryRecordsByUserId = async (
+  const query = async (
     userId: string,
     params: aws.DynamoDB.DocumentClient.QueryInput
   ) => {
@@ -81,7 +76,13 @@ const AwsService = () => {
     }
   };
 
-  return { uploadFile, addDataToDB, getItem, update, queryRecordsByUserId };
+  return {
+    uploadFile,
+    addDataToDB,
+    update,
+    query,
+    batchGet,
+  };
 };
 
 export default AwsService;

@@ -1,5 +1,6 @@
 import AwsService from '../services/AwsService';
 import CONSTS from '../helpers/consts';
+import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 const ImageDataRepo = () => {
   const awsService = AwsService();
@@ -11,13 +12,13 @@ const ImageDataRepo = () => {
     const imageData = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
       Item: {
-        UserId: userId,
-        ImageId: data.Key,
-        ImageUrl: data.Location,
-        Titles: [],
-        Tags: [],
-        Folders: [],
-        UploadTimestamp: new Date().toISOString(),
+        userId: userId,
+        imageId: data.Key,
+        imageUrl: data.Location,
+        titles: [],
+        tags: [],
+        folders: [],
+        uploadTimestamp: new Date().toISOString(),
       },
     };
     try {
@@ -27,16 +28,27 @@ const ImageDataRepo = () => {
     }
   };
 
-  const getImageData = (userId: string) => {
-    const queryParams = {
+  const getImageData = async (userId: string) => {
+    const queryParams: DocumentClient.QueryInput = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
-      KeyConditionExpression: 'UserId = :userId',
+      KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
         ':userId': userId,
       },
+      ScanIndexForward: false,
     };
     try {
-      return awsService.queryRecordsByUserId(userId, queryParams);
+      return awsService.query(userId, queryParams);
+      // const imageData = await awsService.queryRecordsByUserId(
+      //   userId,
+      //   queryParams
+      // );
+      // console.log('Got image data', imageData);
+      // if (imageData.Items) {
+      //   const imageIds = imageData.Items.map(
+      //     (_imageData) => _imageData.ImageId
+      //   );
+      // }
     } catch (err) {
       throw err;
     }

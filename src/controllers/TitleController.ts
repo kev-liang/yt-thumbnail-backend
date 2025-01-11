@@ -5,6 +5,7 @@ const TitleController = () => {
   const titleRepo = TitleRepo();
 
   interface UpdateTitleReqBody {
+    userId: string;
     imageId: string;
     title: string;
   }
@@ -12,8 +13,8 @@ const TitleController = () => {
     req: Request<{}, {}, UpdateTitleReqBody>,
     res: Response
   ) => {
-    const { imageId, title } = req.body;
-    const data = await titleRepo.addTitle(imageId, title);
+    const { userId, imageId, title } = req.body;
+    const data = await titleRepo.addTitle(userId, imageId, title);
     res.status(200).json(data);
   };
   return { addTitle };
