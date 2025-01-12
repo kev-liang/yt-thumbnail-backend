@@ -39,16 +39,6 @@ const ImageDataRepo = () => {
     };
     try {
       return awsService.query(userId, queryParams);
-      // const imageData = await awsService.queryRecordsByUserId(
-      //   userId,
-      //   queryParams
-      // );
-      // console.log('Got image data', imageData);
-      // if (imageData.Items) {
-      //   const imageIds = imageData.Items.map(
-      //     (_imageData) => _imageData.ImageId
-      //   );
-      // }
     } catch (err) {
       throw err;
     }
@@ -69,7 +59,41 @@ const ImageDataRepo = () => {
     }
   };
 
-  return { addBaseImageData, getImageData, getSingleImageData };
+  const deleteImageData = async (userId: string, imageIds: string[]) => {
+    const deleteReqs = imageIds.map((imageId) => ({
+      DeleteRequest: {
+        Key: {
+          userId,
+          imageId,
+        },
+      },
+    }));
+
+    const batches = [];
+    while (deleteReqs.length) {
+      batches.push(deleteReqs.splice(0, 25));
+    }
+
+    batches.forEach((batch) => {
+      const params = {
+        RequestItems: {
+          [CONSTS.IMAGE_DATA_DB_NAME]: batch,
+        },
+      };
+      try {
+        return awsService.batchWrite(params);
+      } catch (error) {
+        throw error;
+      }
+    });
+  };
+
+  return {
+    addBaseImageData,
+    getImageData,
+    getSingleImageData,
+    deleteImageData,
+  };
 };
 
 export default ImageDataRepo;

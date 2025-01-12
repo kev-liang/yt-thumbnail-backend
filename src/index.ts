@@ -8,6 +8,7 @@ dotenv.config();
 import FileController from './controllers/FileController';
 import TitleController from './controllers/TitleController';
 import ImageDataController from './controllers/ImageDataController';
+import AwsService from './services/AwsService';
 
 const app = express();
 const port = 5000;

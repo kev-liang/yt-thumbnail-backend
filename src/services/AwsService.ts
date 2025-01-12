@@ -76,12 +76,36 @@ const AwsService = () => {
     }
   };
 
+  const batchWrite = async (
+    params: aws.DynamoDB.DocumentClient.BatchWriteItemInput
+  ) => {
+    try {
+      const data = await dynamoDB.batchWrite(params).promise();
+      return data;
+    } catch (err) {
+      console.error('Error batch write:', err);
+      throw err;
+    }
+  };
+
+  const deleteS3Objects = async (params: aws.S3.DeleteObjectsRequest) => {
+    try {
+      const response = await s3.deleteObjects(params).promise();
+      console.log('Successfully deleted s3 object:', response.Deleted);
+    } catch (err) {
+      console.error('Error deleting s3 object: ', err);
+      throw err;
+    }
+  };
+
   return {
     uploadFile,
     addDataToDB,
     update,
     query,
     batchGet,
+    batchWrite,
+    deleteS3Objects,
   };
 };
 
