@@ -1,10 +1,13 @@
 import CONSTS from '../helpers/consts';
 import AwsService from '../services/AwsService';
 import { TitleItem } from '../types';
+import ImageDataRepo from './ImageDataRepo';
+
 const { v4: uuidv4 } = require('uuid');
 
 const TitleRepo = () => {
   const awsService = AwsService();
+  const imageDataRepo = ImageDataRepo();
 
   const addTitle = async (userId: string, imageId: string, title: string) => {
     const titleItem: TitleItem = {
@@ -30,7 +33,37 @@ const TitleRepo = () => {
     const data = await awsService.update(imageParams);
     return data;
   };
-  return { addTitle };
+
+  const deleteTitle = async (
+    userId: string,
+    imageId: string,
+    titleId: string
+  ) => {
+    const { Items } = await imageDataRepo.getSingleImageData(userId, imageId);
+    if (!Items || Items.length === 0) {
+      console.error('No image data found', userId, imageId, titleId);
+      return;
+    }
+    const singleImageData = Items[0];
+    const updatedTitles = singleImageData.titles.filter(
+      (title: Record<string, string>) => title.id !== titleId
+    );
+    console.log('UPDATED TITLES', updatedTitles);
+    const updateParams = {
+      TableName: CONSTS.IMAGE_DATA_DB_NAME,
+      Key: {
+        imageId: imageId,
+        userId: userId,
+      },
+      UpdateExpression: 'SET titles = :updatedTitles',
+      ExpressionAttributeValues: {
+        ':updatedTitles': updatedTitles,
+      },
+      ReturnValues: 'ALL_NEW',
+    };
+    return awsService.update(updateParams);
+  };
+  return { addTitle, deleteTitle };
 };
 
 export default TitleRepo;

@@ -53,8 +53,23 @@ const ImageDataRepo = () => {
       throw err;
     }
   };
+  const getSingleImageData = async (userId: string, imageId: string) => {
+    try {
+      const params = {
+        TableName: CONSTS.IMAGE_DATA_DB_NAME,
+        KeyConditionExpression: 'imageId = :imageId AND userId = :userId',
+        ExpressionAttributeValues: {
+          ':userId': userId,
+          ':imageId': imageId,
+        },
+      };
+      return awsService.query(userId, params);
+    } catch (error) {
+      throw error;
+    }
+  };
 
-  return { addBaseImageData, getImageData };
+  return { addBaseImageData, getImageData, getSingleImageData };
 };
 
 export default ImageDataRepo;

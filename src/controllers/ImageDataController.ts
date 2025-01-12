@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, type Express } from 'express';
 import ImageDataRepo from '../repo/ImageDataRepo';
 
-const ImageDataController = () => {
+const ImageDataController = (app: Express) => {
   const imageDataRepo = ImageDataRepo();
   const getImageData = async (req: Request, res: Response) => {
     const { userId } = req.query;
@@ -20,6 +20,9 @@ const ImageDataController = () => {
       });
     }
   };
+
+  app.get('/image-data', getImageData);
+
   return { getImageData };
 };
 

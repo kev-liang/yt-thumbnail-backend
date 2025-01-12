@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, type Express } from 'express';
 import AwsService from '../services/AwsService';
 import ImageDataRepo from '../repo/ImageDataRepo';
+import multer from 'multer';
 
-const FileController = () => {
+const FileController = (app: Express, upload: multer.Multer) => {
   const awsService = AwsService();
   const imageDataRepo = ImageDataRepo();
 
@@ -32,6 +33,8 @@ const FileController = () => {
       res.status(500).json({ message: 'Error uploading file', error });
     }
   };
+
+  app.post('/upload-file', upload.single('file'), uploadFile);
 
   return { uploadFile };
 };

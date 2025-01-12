@@ -18,17 +18,9 @@ app.use(cors());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-const fileController = FileController();
-const titleController = TitleController();
-const imageDataController = ImageDataController();
-// const imageDataRepo = ImageDataRepo();
-// imageDataRepo.addBaseImageData();
-
-app.post('/upload-file', upload.single('file'), fileController.uploadFile);
-
-app.post('/add-title', titleController.addTitle);
-
-app.get('/image-data', imageDataController.getImageData);
+FileController(app, upload);
+TitleController(app);
+ImageDataController(app);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
