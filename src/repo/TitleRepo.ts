@@ -48,7 +48,6 @@ const TitleRepo = () => {
     const updatedTitles = singleImageData.titles.filter(
       (title: Record<string, string>) => title.id !== titleId
     );
-    console.log('UPDATED TITLES', updatedTitles);
     const updateParams = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
       Key: {

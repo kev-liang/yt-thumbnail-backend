@@ -1,9 +1,57 @@
-import { Request, Response, type Express } from 'express';
+import { NextFunction, Request, Response, type Express } from 'express';
 import AwsService from '../services/AwsService';
 import ImageDataRepo from '../repo/ImageDataRepo';
 import multer from 'multer';
+import { fromBuffer } from 'file-type';
 
-const FileController = (app: Express, upload: multer.Multer) => {
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type!'));
+    }
+  },
+});
+
+// Middleware to validate file type
+const validateFileType = (allowedTypes: string[]) => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const file = req.file;
+
+      if (!file) {
+        res.status(400).json({ error: 'No file uploaded!' });
+        return; // Exit function
+      }
+
+      // Validate file type from buffer
+      const fileType = await fromBuffer(file.buffer);
+      if (!fileType || !allowedTypes.includes(fileType.mime)) {
+        res.status(400).json({ error: 'Invalid file type!' });
+        return; // Exit function
+      }
+
+      // Proceed to the next middleware or route handler
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error!' });
+      return; // Exit function
+    }
+  };
+};
+
+const FileController = (app: Express) => {
   const awsService = AwsService();
   const imageDataRepo = ImageDataRepo();
 
@@ -34,7 +82,14 @@ const FileController = (app: Express, upload: multer.Multer) => {
     }
   };
 
-  app.post('/upload-file', upload.single('file'), uploadFile);
+  const allowedFileTypes = ['image/jpeg', 'image/png'];
+
+  app.post(
+    '/upload-file',
+    upload.single('file'),
+    validateFileType(allowedFileTypes),
+    uploadFile
+  );
 
   return { uploadFile };
 };

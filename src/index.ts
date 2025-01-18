@@ -17,9 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-const upload = multer({ storage: multer.memoryStorage() });
-
-FileController(app, upload);
+FileController(app);
 TitleController(app);
 ImageDataController(app);
 
