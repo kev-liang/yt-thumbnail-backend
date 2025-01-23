@@ -1,32 +1,7 @@
 import { Request, Response, type Express } from 'express';
-import passport from 'passport';
 import config from '../helpers/config';
 import axios from 'axios';
-
-// passport.use(
-//   new GoogleStrategy.Strategy(
-//     {
-//       clientID: config.GOOGLE_CLIENT_ID,
-//       clientSecret: config.GOOGLE_CLIENT_SECRET,
-//       // TODO make this prod / dev url
-//       callbackURL: config.REDIRECT_URI,
-//     },
-//     (accessToken, refreshToken, profile, done) => {
-//       // Store user profile and tokens in your session or database
-//       console.log('Google profile:', profile);
-//       console.log('Access Token:', accessToken);
-//       return done(null, profile);
-//     }
-//   )
-// );
-
-// passport.serializeUser((user, done) => {
-//   done(null, user);
-// });
-
-// passport.deserializeUser((user, done) => {
-//   done(null);
-// });
+import { authenticateUser } from '../helpers/authHelper';
 
 const AuthController = (app: Express) => {
   app.post('/auth/google/code', async (req: Request, res: Response) => {
@@ -39,16 +14,6 @@ const AuthController = (app: Express) => {
     }
 
     try {
-      // Manually exchange the code for tokens using Passport
-      // passport.authenticate('google', (err: any, user: any) => {
-      //   if (err) {
-      //     res
-      //       .status(500)
-      //       .json({ error: 'OAuth exchange failed', details: err });
-      //     return;
-      //   }
-      //   res.json({ user });
-      // })(req, res); // Trigger passport authenticate flow
       const url = 'https://oauth2.googleapis.com/token';
       const body = {
         code,
@@ -62,8 +27,9 @@ const AuthController = (app: Express) => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-      console.log('GOT RES', response.data);
-      res.json({ ...response.data });
+
+      const userPayload = await authenticateUser(response.data.id_token);
+      res.json({ ...userPayload });
     } catch (error) {
       console.error('Error during token exchange:', error);
       res.status(500).json({ error: 'Error during OAuth token exchange' });

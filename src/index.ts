@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
-import passport from 'passport';
 
 dotenv.config();
 
@@ -18,7 +17,6 @@ const port = 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(passport.initialize());
 
 FileController(app);
 TitleController(app);
