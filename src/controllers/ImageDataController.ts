@@ -46,9 +46,15 @@ const ImageDataController = (app: Express) => {
     }
   };
 
+  const getBaseImageData = (req: Request, res: Response) => {
+    res.status(200).json(imageDataRepo.getBaseImageData());
+  };
+
   app.get('/image-data', verifyToken, getImageData);
 
   app.delete('/delete-image-data', verifyToken, deleteImageData);
+
+  app.get('/base-image-data', getBaseImageData);
 
   return { getImageData };
 };

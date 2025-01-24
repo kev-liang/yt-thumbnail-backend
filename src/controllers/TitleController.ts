@@ -59,7 +59,18 @@ const TitleController = (app: Express) => {
     res.status(200).json(data?.Attributes);
   };
 
+  const addTitleNonLoggedIn = (req: Request, res: Response) => {
+    const { title } = req.body;
+    if (!title) {
+      res.status(400).json('Title required');
+      return;
+    }
+    const baseTitle = titleRepo.getBaseTitle(title);
+    res.status(200).json(baseTitle);
+  };
+
   app.post('/add-title', verifyToken, addTitle);
+  app.post('/add-title-not-logged-in', addTitleNonLoggedIn);
   app.delete('/delete-title', verifyToken, deleteTitle);
 };
 

@@ -9,12 +9,16 @@ const TitleRepo = () => {
   const awsService = AwsService();
   const imageDataRepo = ImageDataRepo();
 
-  const addTitle = async (userId: string, imageId: string, title: string) => {
-    const titleItem: TitleItem = {
+  const getBaseTitle = (title: string) => {
+    return {
       id: uuidv4(),
-      title: title,
+      title,
       uploadTimestamp: new Date().toISOString(),
     };
+  };
+
+  const addTitle = async (userId: string, imageId: string, title: string) => {
+    const titleItem: TitleItem = getBaseTitle(title);
 
     const imageParams = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
@@ -62,7 +66,7 @@ const TitleRepo = () => {
     };
     return awsService.update(updateParams);
   };
-  return { addTitle, deleteTitle };
+  return { addTitle, deleteTitle, getBaseTitle };
 };
 
 export default TitleRepo;
