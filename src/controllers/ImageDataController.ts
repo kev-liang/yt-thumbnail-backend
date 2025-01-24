@@ -1,17 +1,18 @@
 import { Request, Response, type Express } from 'express';
 import ImageDataRepo from '../repo/ImageDataRepo';
 import FileRepo from '../repo/FileRepo';
+import { verifyToken } from './middleware/authMiddleware';
 
 const ImageDataController = (app: Express) => {
   const imageDataRepo = ImageDataRepo();
   const fileRepo = FileRepo();
 
   const getImageData = async (req: Request, res: Response) => {
-    const { userId } = req.query;
-    if (!userId || typeof userId !== 'string') {
-      res.status(400).json({ message: 'userId as string required.' });
+    if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
       return;
     }
+    const { userId } = req.user;
     try {
       const data = await imageDataRepo.getImageData(userId);
       res.status(200).json(data);
@@ -25,12 +26,12 @@ const ImageDataController = (app: Express) => {
   };
 
   const deleteImageData = async (req: Request, res: Response) => {
-    const { userId } = req.query;
     const { imageIds } = req.body;
-    if (!userId || typeof userId !== 'string') {
-      res.status(400).json({ message: 'userId as string required.' });
+    if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
       return;
     }
+    const { userId } = req.user;
     try {
       const deletePromises = [
         imageDataRepo.deleteImageData(userId, imageIds),
@@ -45,9 +46,9 @@ const ImageDataController = (app: Express) => {
     }
   };
 
-  app.get('/image-data', getImageData);
+  app.get('/image-data', verifyToken, getImageData);
 
-  app.delete('/delete-image-data', deleteImageData);
+  app.delete('/delete-image-data', verifyToken, deleteImageData);
 
   return { getImageData };
 };

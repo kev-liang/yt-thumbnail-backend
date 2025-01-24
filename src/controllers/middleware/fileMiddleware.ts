@@ -60,7 +60,7 @@ let clam: NodeClam | null = null;
         port: 3310,
         timeout: 60000,
       },
-      debugMode: true, // Enable debug mode for troubleshooting
+      // debugMode: true, // Enable debug mode for troubleshooting
     });
     console.log('ClamAV initialized successfully on Windows!');
   } catch (error) {

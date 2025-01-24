@@ -6,20 +6,21 @@ import {
   validateFileType,
   scanFile,
 } from './middleware/fileMiddleware';
+import { verifyToken } from './middleware/authMiddleware';
 
 const FileController = (app: Express) => {
   const awsService = AwsService();
   const imageDataRepo = ImageDataRepo();
 
   const uploadFile = async (req: Request, res: Response) => {
-    const { userId } = req.body;
     if (!req.file) {
       res.status(400).json({ message: 'No file uploaded.' });
       return;
-    } else if (!req.body.userId) {
+    } else if (!req.user?.userId) {
       res.status(400).json({ message: 'userId is required.' });
       return;
     }
+    const { userId } = req.user;
     console.log('Uploading file:', { ...req.file, buffer: undefined });
     try {
       const data = await awsService.uploadFile(req.file);
@@ -45,6 +46,7 @@ const FileController = (app: Express) => {
     upload.single('file'),
     validateFileType(allowedFileTypes),
     scanFile,
+    verifyToken,
     uploadFile
   );
 

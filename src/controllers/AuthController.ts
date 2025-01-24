@@ -4,9 +4,8 @@ import axios from 'axios';
 import { authenticateUser } from '../helpers/authHelper';
 
 const AuthController = (app: Express) => {
-  app.post('/auth/google/code', async (req: Request, res: Response) => {
+  const authenticateUserHandler = async (req: Request, res: Response) => {
     const { code } = req.body;
-    console.log('CONFIG', config);
 
     if (!code) {
       res.status(400).json({ error: 'Authorization code is missing' });
@@ -34,7 +33,9 @@ const AuthController = (app: Express) => {
       console.error('Error during token exchange:', error);
       res.status(500).json({ error: 'Error during OAuth token exchange' });
     }
-  });
+  };
+
+  app.post('/auth/google/code', authenticateUserHandler);
 };
 
 export default AuthController;

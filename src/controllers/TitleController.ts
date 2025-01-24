@@ -1,5 +1,6 @@
 import TitleRepo from '../repo/TitleRepo';
 import { Request, Response, type Express } from 'express';
+import { verifyToken } from './middleware/authMiddleware';
 
 const TitleController = (app: Express) => {
   const titleRepo = TitleRepo();
@@ -14,19 +15,42 @@ const TitleController = (app: Express) => {
     req: Request<{}, {}, UpdateTitleReqBody>,
     res: Response
   ) => {
-    const { userId, imageId, title } = req.body;
+    const { imageId, title } = req.body;
+    if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
+      return;
+    } else if (!imageId) {
+      res.status(400).json({ message: 'imageId is required.' });
+      return;
+    } else if (!title) {
+      res.status(400).json({ message: 'title is required.' });
+      return;
+    }
+
+    const { userId } = req.user;
     const data = await titleRepo.addTitle(userId, imageId, title);
     res.status(200).json(data?.Attributes);
   };
 
-  const deleteTitle = async (req: Request, res: Response) => {
-    const { userId, imageId, titleId } = req.query as {
-      userId: string;
-      imageId: string;
-      titleId: string;
-    };
+  interface DeleteTitleQuery {
+    imageId: string;
+    titleId: string;
+  }
 
-    console.log('DELETE', userId, imageId, titleId);
+  const deleteTitle = async (req: Request, res: Response) => {
+    const { imageId, titleId } = req.query as unknown as DeleteTitleQuery;
+    if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
+      return;
+    } else if (!imageId) {
+      res.status(400).json({ message: 'imageId is required.' });
+      return;
+    } else if (!titleId) {
+      res.status(400).json({ message: 'title is required.' });
+      return;
+    }
+    const { userId } = req.user;
+
     if (!userId || !imageId || !titleId) {
       res.status(400).json('Must pass userId, imageId, and titleId');
       return;
@@ -35,8 +59,8 @@ const TitleController = (app: Express) => {
     res.status(200).json(data?.Attributes);
   };
 
-  app.post('/add-title', addTitle);
-  app.delete('/delete-title', deleteTitle);
+  app.post('/add-title', verifyToken, addTitle);
+  app.delete('/delete-title', verifyToken, deleteTitle);
 };
 
 export default TitleController;
