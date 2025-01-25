@@ -4,6 +4,7 @@ import config from '../helpers/config';
 import { verifyToken } from './middleware/authMiddleware';
 import express from 'express';
 import { ImageData } from '../types';
+import ImageDataRepo from '../repo/ImageDataRepo';
 
 const stripe = new Stripe(config.STRIPE_API_KEY || '', {
   apiVersion: '2024-12-18.acacia',
@@ -25,24 +26,35 @@ const getStripeConfig = (userId: string) => {
       },
     ],
     mode: 'payment',
-    customer: userId,
     success_url:
       'https://your-site.com/success?session_id={CHECKOUT_SESSION_ID}',
     cancel_url: 'https://your-site.com/cancel',
+    metadata: {
+      userId,
+    },
   };
   return stripeConfig;
 };
 
 const StripeController = (app: Express) => {
-  const createCheckoutSession = async (req: Request, res: Response) => {
+  const imageDataRepo = ImageDataRepo();
+  interface CheckoutBody {
+    imageData: ImageData[];
+  }
+  const createCheckoutSession = async (
+    req: Request<{}, {}, CheckoutBody>,
+    res: Response
+  ) => {
     if (!req.user) {
       res.status(400).json({ message: 'user is required' });
       return;
     }
 
     const { userId } = req.user;
+    const { imageData } = req.body;
     const stripeConfig = getStripeConfig(userId);
     const session = await stripe.checkout.sessions.create(stripeConfig);
+    await imageDataRepo.addAllImageData(userId, imageData);
     res.json({ url: session.url });
   };
 
@@ -73,6 +85,7 @@ const StripeController = (app: Express) => {
         const customerId = session.customer;
         const sessionId = session.id;
         const paymentStatus = session.payment_status;
+        const userId = session.metadata?.userId;
 
         // Add your custom business logic here
         break;
@@ -84,12 +97,13 @@ const StripeController = (app: Express) => {
     res.json({ received: true });
   };
 
-  app.get('/checkout', verifyToken, createCheckoutSession);
   app.post(
     '/checkout-success',
     express.raw({ type: 'application/json' }),
     checkoutSuccess
   );
+  app.use(express.json());
+  app.post('/checkout', verifyToken, createCheckoutSession);
 };
 
 export default StripeController;

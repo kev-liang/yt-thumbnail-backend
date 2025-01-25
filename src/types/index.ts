@@ -1,9 +1,13 @@
 export interface ImageData {
-  UserId: string;
-  ImageId: string;
-  Titles: string[];
-  Tags: string[];
-  ImageUrl: string;
+  PK: string;
+  SK: string;
+  userId: string;
+  imageId: string;
+  imageUrl: string;
+  titles: string[];
+  tags: string[];
+  folders: string[];
+  uploadTimestamp: string;
 }
 
 export interface TitleItem {

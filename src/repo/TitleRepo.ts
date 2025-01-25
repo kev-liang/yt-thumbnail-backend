@@ -23,8 +23,8 @@ const TitleRepo = () => {
     const imageParams = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
       Key: {
-        userId: userId,
-        imageId: imageId,
+        PK: `USER#${userId}`, // Updated Partition Key
+        SK: `IMAGE#${imageId}`, // Updated Sort Key
       },
       UpdateExpression:
         'SET titles = list_append(if_not_exists(titles, :empty_list), :new_title)',
@@ -55,8 +55,8 @@ const TitleRepo = () => {
     const updateParams = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
       Key: {
-        imageId: imageId,
-        userId: userId,
+        PK: `USER#${userId}`, // Updated Partition Key
+        SK: `IMAGE#${imageId}`, // Updated Sort Key
       },
       UpdateExpression: 'SET titles = :updatedTitles',
       ExpressionAttributeValues: {
