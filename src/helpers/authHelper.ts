@@ -1,11 +1,10 @@
 import config from './config';
 import jwt from 'jsonwebtoken';
-import consts from './consts';
 import { OAuth2Client } from 'google-auth-library';
 
 export const generateJWT = (payload: object): string => {
   return jwt.sign(payload, config.GOOGLE_CLIENT_SECRET, {
-    expiresIn: consts.JWT_EXPIRATION_TIME,
+    expiresIn: '1h',
   });
 };
 

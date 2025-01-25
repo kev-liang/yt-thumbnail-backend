@@ -9,6 +9,8 @@ export interface Config {
   AWS_REGION: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  STRIPE_API_KEY: string;
+  WEBHOOK_SECRET: string;
 }
 
 const config: Config = {
@@ -18,6 +20,8 @@ const config: Config = {
   AWS_REGION: process.env.AWS_REGION || '',
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  STRIPE_API_KEY: process.env.STRIPE_API_KEY || '',
+  WEBHOOK_SECRET: process.env.WEBHOOK_SECRET || '',
 };
 
 export default config;
