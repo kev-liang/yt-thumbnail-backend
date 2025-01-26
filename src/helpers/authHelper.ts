@@ -42,9 +42,9 @@ export const authenticateUser = async (idToken: string) => {
     };
 
     // Generate your own JWT
-    const appJWT = generateJWT(customPayload, '1h');
+    const accessToken = generateJWT(customPayload, '1s');
     const refreshToken = generateJWT(customPayload, '30d');
-    return { jwt: appJWT, refreshToken, user: customPayload };
+    return { accessToken, refreshToken, user: customPayload };
   } catch (err) {
     console.error('Error authenticating user:', err);
     throw new Error('Authentication failed');

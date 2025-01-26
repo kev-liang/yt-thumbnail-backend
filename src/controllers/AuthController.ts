@@ -41,6 +41,7 @@ const AuthController = (app: Express) => {
 
   const refreshTokenHandler = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
+    console.log('REFRESHING', refreshToken);
 
     if (!refreshToken) {
       res.status(400).json({ error: 'Refresh token is required' });
@@ -56,18 +57,18 @@ const AuthController = (app: Express) => {
         picture: string;
       };
 
-      const newAccessToken = generateJWT(
-        {
-          userId,
-          email,
-          name,
-          picture,
-        },
-        '1h'
-      );
+      const userPayload = {
+        userId,
+        email,
+        name,
+        picture,
+      };
+      const newAccessToken = generateJWT(userPayload, '1h');
+      const newRefreshToken = generateJWT(userPayload, '30d');
 
       res.json({
-        jwt: newAccessToken,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       });
     } catch (error) {
       res.status(401).json({ error: 'Invalid refresh token' });
