@@ -1,10 +1,14 @@
 import config from './config';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import { StringValue } from 'ms';
 
-export const generateJWT = (payload: object): string => {
+export const generateJWT = (
+  payload: object,
+  expiresIn: StringValue
+): string => {
   return jwt.sign(payload, config.GOOGLE_CLIENT_SECRET, {
-    expiresIn: '1h',
+    expiresIn,
   });
 };
 
@@ -23,8 +27,6 @@ export const authenticateUser = async (idToken: string) => {
       throw new Error('Invalid ID token');
     }
 
-    console.log('validatied', payload);
-
     // Extract user information
     const userId = payload.sub; // Google user ID (unique per user)
     const email = payload.email; // User email
@@ -40,10 +42,24 @@ export const authenticateUser = async (idToken: string) => {
     };
 
     // Generate your own JWT
-    const appJWT = generateJWT(customPayload);
-    return { jwt: appJWT, user: customPayload };
+    const appJWT = generateJWT(customPayload, '1h');
+    const refreshToken = generateJWT(customPayload, '30d');
+    return { jwt: appJWT, refreshToken, user: customPayload };
   } catch (err) {
     console.error('Error authenticating user:', err);
     throw new Error('Authentication failed');
   }
+};
+
+// Middleware to verify the refresh token
+export const verifyRefreshToken = (refreshToken: string) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(refreshToken, config.GOOGLE_CLIENT_SECRET, (err, decoded) => {
+      if (err) {
+        reject('Invalid or expired refresh token');
+      } else {
+        resolve(decoded);
+      }
+    });
+  });
 };

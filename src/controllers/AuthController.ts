@@ -1,7 +1,11 @@
 import { Request, Response, type Express } from 'express';
 import config from '../helpers/config';
 import axios from 'axios';
-import { authenticateUser } from '../helpers/authHelper';
+import {
+  authenticateUser,
+  generateJWT,
+  verifyRefreshToken,
+} from '../helpers/authHelper';
 
 const AuthController = (app: Express) => {
   const authenticateUserHandler = async (req: Request, res: Response) => {
@@ -35,7 +39,43 @@ const AuthController = (app: Express) => {
     }
   };
 
+  const refreshTokenHandler = async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ error: 'Refresh token is required' });
+      return;
+    }
+
+    try {
+      const decoded = await verifyRefreshToken(refreshToken);
+      const { userId, email, name, picture } = decoded as {
+        userId: string;
+        email: string;
+        name: string;
+        picture: string;
+      };
+
+      const newAccessToken = generateJWT(
+        {
+          userId,
+          email,
+          name,
+          picture,
+        },
+        '1h'
+      );
+
+      res.json({
+        jwt: newAccessToken,
+      });
+    } catch (error) {
+      res.status(401).json({ error: 'Invalid refresh token' });
+    }
+  };
+
   app.post('/auth/google/code', authenticateUserHandler);
+  app.post('/refresh-token', refreshTokenHandler);
 };
 
 export default AuthController;

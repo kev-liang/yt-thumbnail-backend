@@ -76,9 +76,10 @@ const ImageDataRepo = () => {
     try {
       const params = {
         TableName: CONSTS.IMAGE_DATA_DB_NAME,
-        Key: {
-          PK: `${consts.USER_PK_PREFIX}${userId}`,
-          SK: `${consts.IMAGE_SK_PREFIX}${imageId}`,
+        KeyConditionExpression: 'PK = :pk AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':pk': `USER#${userId}`,
+          ':sk': `IMAGE#${imageId}`,
         },
       };
       return awsService.query(userId, params);
