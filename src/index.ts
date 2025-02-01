@@ -11,6 +11,7 @@ import ImageDataController from './controllers/ImageDataController';
 import AwsService from './services/AwsService';
 import AuthController from './controllers/AuthController';
 import StripeController from './controllers/StripeController';
+import UserController from './controllers/UserController';
 
 const app = express();
 const port = 5000;
@@ -20,11 +21,11 @@ app.use(cors());
 
 StripeController(app);
 
-app.use(express.json());
 FileController(app);
 TitleController(app);
 ImageDataController(app);
 AuthController(app);
+UserController(app);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

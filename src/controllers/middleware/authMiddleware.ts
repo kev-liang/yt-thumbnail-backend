@@ -12,7 +12,7 @@ export const verifyToken = (
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    res.status(401).json({ error: 'Authorization token missing' });
+    res.status(400).json({ error: 'Authorization token missing' });
     return;
   }
   console.log('GOT TOKEN', token);

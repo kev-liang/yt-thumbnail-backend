@@ -6,9 +6,10 @@ import {
   generateJWT,
   verifyRefreshToken,
 } from '../helpers/authHelper';
+import { verifyToken } from './middleware/authMiddleware';
 
 const AuthController = (app: Express) => {
-  const authenticateUserHandler = async (req: Request, res: Response) => {
+  const authenticateUserWithCode = async (req: Request, res: Response) => {
     const { code } = req.body;
 
     if (!code) {
@@ -37,6 +38,20 @@ const AuthController = (app: Express) => {
       console.error('Error during token exchange:', error);
       res.status(500).json({ error: 'Error during OAuth token exchange' });
     }
+  };
+
+  interface AuthenticateUserWithTokenBody {
+    accessToken: string;
+  }
+  const authenticateUserWithToken = async (
+    req: Request<{}, {}, AuthenticateUserWithTokenBody>,
+    res: Response
+  ) => {
+    if (!req.user) {
+      res.status(400).json('Error no user found');
+    }
+
+    res.status(200).json(req.user);
   };
 
   const refreshTokenHandler = async (req: Request, res: Response) => {
@@ -75,7 +90,8 @@ const AuthController = (app: Express) => {
     }
   };
 
-  app.post('/auth/google/code', authenticateUserHandler);
+  app.post('/auth/google/code', authenticateUserWithCode);
+  app.post('/auth/google/token', verifyToken, authenticateUserWithToken);
   app.post('/refresh-token', refreshTokenHandler);
 };
 

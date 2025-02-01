@@ -3,7 +3,6 @@ import CONSTS from '../helpers/consts';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { ImageData } from '../types';
 import { convertBase64ToFile } from '../helpers/fileHelper';
-import consts from '../helpers/consts';
 
 const ImageDataRepo = () => {
   const awsService = AwsService();
@@ -41,8 +40,8 @@ const ImageDataRepo = () => {
       userId,
       imageId: data.Key,
       imageUrl: data.Location,
-      PK: `${consts.USER_PK_PREFIX}${userId}`,
-      SK: `${consts.IMAGE_SK_PREFIX}${data.Key}`,
+      PK: `${CONSTS.USER_PK_PREFIX}${userId}`,
+      SK: `${CONSTS.IMAGE_SK_PREFIX}${data.Key}`,
     };
     const putImageDataParams = {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
@@ -60,8 +59,8 @@ const ImageDataRepo = () => {
       TableName: CONSTS.IMAGE_DATA_DB_NAME,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
-        ':pk': `${consts.USER_PK_PREFIX}${userId}`,
-        ':prefix': consts.IMAGE_SK_PREFIX,
+        ':pk': `${CONSTS.USER_PK_PREFIX}${userId}`,
+        ':prefix': CONSTS.IMAGE_SK_PREFIX,
       },
       ScanIndexForward: false,
     };
