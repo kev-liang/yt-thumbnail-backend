@@ -1,4 +1,4 @@
-import { Request, Response, type Express } from 'express';
+import { NextFunction, Request, Response, type Express } from 'express';
 import AwsService from '../services/AwsService';
 import ImageDataRepo from '../repo/ImageDataRepo';
 import {
@@ -13,13 +13,7 @@ const FileController = (app: Express) => {
   const imageDataRepo = ImageDataRepo();
 
   const uploadFile = async (req: Request, res: Response) => {
-    if (!req.file) {
-      res.status(400).json({ message: 'No file uploaded.' });
-      return;
-    } else if (!req.user?.userId) {
-      res.status(400).json({ message: 'userId is required.' });
-      return;
-    }
+    if (!req.user?.userId || !req.file) return;
     const { userId } = req.user;
     console.log('Uploading file:', { ...req.file, buffer: undefined });
     try {
@@ -32,11 +26,45 @@ const FileController = (app: Express) => {
         res.status(200).json({
           fileUrl: data.Location,
         });
+      } else {
+        throw Error('No data returned from s3');
       }
     } catch (error) {
       console.error('Error uploading file:', error);
       res.status(500).json({ message: 'Error uploading file', error });
     }
+  };
+
+  const uploadFileAll = async (req: Request, res: Response) => {
+    if (!req.user?.userId || !req.file) return;
+    const { userId } = req.user;
+    const { imageData: imageDataJsonString } = req.body;
+    const imageData = JSON.parse(imageDataJsonString);
+    try {
+      await imageDataRepo.addExistingImageData(userId, req.file, imageData);
+
+      res.status(200).json({
+        imageData,
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ message: 'Error uploading file', error });
+    }
+  };
+
+  const hasFileAndUserMiddleware = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    if (!req.file) {
+      res.status(400).json({ message: 'No file uploaded.' });
+      return;
+    } else if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
+      return;
+    }
+    next();
   };
 
   const allowedFileTypes = ['image/jpeg', 'image/png'];
@@ -47,7 +75,18 @@ const FileController = (app: Express) => {
     validateFileType(allowedFileTypes),
     scanFile,
     verifyToken,
+    hasFileAndUserMiddleware,
     uploadFile
+  );
+
+  app.post(
+    '/upload-file-all',
+    upload.single('file'),
+    validateFileType(allowedFileTypes),
+    scanFile,
+    verifyToken,
+    hasFileAndUserMiddleware,
+    uploadFileAll
   );
 
   return { uploadFile };

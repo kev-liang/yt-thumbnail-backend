@@ -1,6 +1,4 @@
 export interface ImageData {
-  PK: string;
-  SK: string;
   userId: string;
   imageId: string;
   imageUrl: string;
@@ -8,6 +6,11 @@ export interface ImageData {
   tags: string[];
   folders: string[];
   uploadTimestamp: string;
+}
+
+export interface ImageDataDBO extends ImageData {
+  PK: string;
+  SK: string;
 }
 
 export interface TitleItem {

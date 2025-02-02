@@ -51,10 +51,8 @@ const StripeController = (app: Express) => {
     }
 
     const { userId } = req.user;
-    const { imageData } = req.body;
     const stripeConfig = getStripeConfig(userId);
     const session = await stripe.checkout.sessions.create(stripeConfig);
-    await imageDataRepo.addAllImageData(userId, imageData);
     res.json({ url: session.url });
   };
 
@@ -103,7 +101,7 @@ const StripeController = (app: Express) => {
     checkoutSuccess
   );
   app.use(express.json());
-  app.post('/checkout', verifyToken, createCheckoutSession);
+  app.get('/checkout', verifyToken, createCheckoutSession);
 };
 
 export default StripeController;

@@ -1,7 +1,7 @@
 import AwsService from '../services/AwsService';
 import CONSTS from '../helpers/consts';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
-import { ImageData } from '../types';
+import { ImageData, ImageDataDBO } from '../types';
 import { convertBase64ToFile } from '../helpers/fileHelper';
 
 const ImageDataRepo = () => {
@@ -35,7 +35,7 @@ const ImageDataRepo = () => {
     data: AWS.S3.ManagedUpload.SendData
   ) => {
     const baseImageData = getBaseImageData();
-    const imageData: ImageData = {
+    const imageData: ImageDataDBO = {
       ...baseImageData,
       userId,
       imageId: data.Key,
@@ -146,6 +146,31 @@ const ImageDataRepo = () => {
     return uploadPromises;
   };
 
+  const addExistingImageData = async (
+    userId: string,
+    file: Express.Multer.File,
+    imageData: ImageData
+  ) => {
+    const data = await awsService.uploadFile(file);
+    if (data) {
+      const imageDataItem: ImageDataDBO = {
+        ...imageData,
+        userId,
+        imageId: data.Key,
+        imageUrl: data.Location,
+        PK: `${CONSTS.USER_PK_PREFIX}${userId}`,
+        SK: `${CONSTS.IMAGE_SK_PREFIX}${data.Key}`,
+      };
+      const putImageDataParams = {
+        TableName: CONSTS.IMAGE_DATA_DB_NAME,
+        Item: imageDataItem,
+      };
+      awsService.addDataToDB(putImageDataParams);
+    } else {
+      throw Error('No data returned from s3');
+    }
+  };
+
   const addAllImageData = async (userId: string, imageData: ImageData[]) => {
     try {
       const uploadPromises = await getUploadImagePromises(imageData);
@@ -197,6 +222,7 @@ const ImageDataRepo = () => {
     getSingleImageData,
     deleteImageData,
     addAllImageData,
+    addExistingImageData,
   };
 };
 
