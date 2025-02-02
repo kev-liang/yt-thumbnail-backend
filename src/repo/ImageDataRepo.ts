@@ -1,8 +1,9 @@
 import AwsService from '../services/AwsService';
 import CONSTS from '../helpers/consts';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
-import { ImageData, ImageDataDBO } from '../types';
+import { DBO, ImageData, ImageDataDBO } from '../types';
 import { convertBase64ToFile } from '../helpers/fileHelper';
+import consts from '../helpers/consts';
 
 const ImageDataRepo = () => {
   const awsService = AwsService();
@@ -52,6 +53,7 @@ const ImageDataRepo = () => {
     } catch (err) {
       throw err;
     }
+    addLastItemUpdatedTimestamp(userId);
   };
 
   const getImageData = async (userId: string) => {
@@ -114,36 +116,7 @@ const ImageDataRepo = () => {
         throw error;
       }
     });
-  };
-
-  const getUploadImagePromises = async (imageData: ImageData[]) => {
-    const uploadPromises = imageData.map(async (data) => {
-      // Convert base64 to buffer
-      const base64Data = data.imageUrl.replace(/^data:image\/\w+;base64,/, '');
-      const buffer = Buffer.from(base64Data, 'base64');
-
-      // Create file object for S3 upload
-      // const file = {
-      //   buffer,
-      //   mimetype: data.imageUrl.split(';')[0].split(':')[1],
-      //   originalname: `${Date.now()}.${
-      //     data.imageUrl.split(';')[0].split('/')[1]
-      //   }`,
-      // };
-      const file = convertBase64ToFile(buffer, data);
-
-      // Upload to S3
-      const s3Data = await awsService.uploadFile(file);
-      if (!s3Data) return;
-
-      // Update image data with S3 info
-      return {
-        ...data,
-        imageUrl: s3Data.Location,
-        imageId: s3Data.Key,
-      };
-    });
-    return uploadPromises;
+    await addLastItemUpdatedTimestamp(userId);
   };
 
   const addExistingImageData = async (
@@ -165,54 +138,30 @@ const ImageDataRepo = () => {
         TableName: CONSTS.IMAGE_DATA_DB_NAME,
         Item: imageDataItem,
       };
-      awsService.addDataToDB(putImageDataParams);
+      await Promise.all([
+        awsService.addDataToDB(putImageDataParams),
+        addLastItemUpdatedTimestamp(userId),
+      ]);
     } else {
       throw Error('No data returned from s3');
     }
   };
 
-  const addAllImageData = async (userId: string, imageData: ImageData[]) => {
-    try {
-      const uploadPromises = await getUploadImagePromises(imageData);
-      if (!uploadPromises) return;
-      const updatedImageData = await Promise.all(uploadPromises);
+  interface LastItemUpdatedTimestampDBO extends DBO {}
 
-      const updatedImageDataReq = {
-        TableName: CONSTS.IMAGE_DATA_DB_NAME,
-        Item: updatedImageData,
-      };
+  const addLastItemUpdatedTimestamp = async (userId: string) => {
+    const timestamp = new Date().toISOString();
+    const lastItemUpdatedTimestamp: LastItemUpdatedTimestampDBO = {
+      PK: `${consts.USER_PK_PREFIX}${userId}`,
+      SK: `${consts.LAST_ITEM_UPDATED_TIMESTAMP_PREFIX}${timestamp}`,
+    };
 
-      awsService.addDataToDB(updatedImageDataReq);
-      // Batch write to DynamoDB
-      // const putRequests = updatedImageData.map((data) => ({
-      //   PutRequest: {
-      //     Item: {
-      //       userId,
-      //       ...data,
-      //     },
-      //   },
-      // }));
+    const lastItemUpdatedTimestampParams = {
+      TableName: consts.IMAGE_DATA_DB_NAME,
+      Item: lastItemUpdatedTimestamp,
+    };
 
-      // const batches = [];
-      // while (putRequests.length) {
-      //   batches.push(putRequests.splice(0, 25));
-      // }
-
-      // await Promise.all(
-      //   batches.map((batch) =>
-      //     awsService.batchWrite({
-      //       RequestItems: {
-      //         [CONSTS.IMAGE_DATA_DB_NAME]: batch,
-      //       },
-      //     })
-      //   )
-      // );
-
-      // return updatedImageData;
-    } catch (error) {
-      console.error('Error in addAllImageData:', error);
-      throw error;
-    }
+    await awsService.addDataToDB(lastItemUpdatedTimestampParams);
   };
 
   return {
@@ -221,8 +170,8 @@ const ImageDataRepo = () => {
     getImageData,
     getSingleImageData,
     deleteImageData,
-    addAllImageData,
     addExistingImageData,
+    addLastItemUpdatedTimestamp,
   };
 };
 

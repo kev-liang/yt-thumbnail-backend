@@ -34,3 +34,8 @@ declare global {
     }
   }
 }
+
+export interface DBO {
+  PK: string;
+  SK: string;
+}

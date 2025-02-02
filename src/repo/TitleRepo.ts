@@ -34,6 +34,7 @@ const TitleRepo = () => {
       },
       ReturnValues: 'ALL_NEW',
     };
+    await imageDataRepo.addLastItemUpdatedTimestamp(userId);
     const data = await awsService.update(imageParams);
     return data;
   };
@@ -64,6 +65,7 @@ const TitleRepo = () => {
       },
       ReturnValues: 'ALL_NEW',
     };
+    await imageDataRepo.addLastItemUpdatedTimestamp(userId);
     return awsService.update(updateParams);
   };
   return { addTitle, deleteTitle, getBaseTitle };

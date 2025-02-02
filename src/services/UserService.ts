@@ -1,9 +1,8 @@
 import consts from '../helpers/consts';
+import { DBO } from '../types';
 import AwsService from './AwsService';
 
-interface UserDBO {
-  PK: string;
-  SK: string;
+interface UserDBO extends DBO {
   isPaid: boolean;
 }
 
