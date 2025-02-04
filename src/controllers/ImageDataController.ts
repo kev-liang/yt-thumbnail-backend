@@ -38,7 +38,7 @@ const ImageDataController = (app: Express) => {
         fileRepo.deleteFiles(imageIds),
       ];
       await Promise.all(deletePromises);
-      res.send(200);
+      res.sendStatus(200);
     } catch (error) {
       res.status(500).json({
         message: `Error deleting for user ${userId} images: ${imageIds}`,
@@ -50,11 +50,28 @@ const ImageDataController = (app: Express) => {
     res.status(200).json(imageDataRepo.getBaseImageData());
   };
 
+  const getLastItemUpdatedTimestamp = async (req: Request, res: Response) => {
+    if (!req.user?.userId) {
+      res.status(400).json({ message: 'userId is required.' });
+      return;
+    }
+    const { userId } = req.user;
+
+    const timestamp = await imageDataRepo.getLastItemUpdatedTimestamp(userId);
+    res.status(200).json({ timestamp });
+  };
+
   app.get('/image-data', verifyToken, getImageData);
 
   app.delete('/delete-image-data', verifyToken, deleteImageData);
 
   app.get('/base-image-data', getBaseImageData);
+
+  app.get(
+    '/get-last-item-updated-timestamp',
+    verifyToken,
+    getLastItemUpdatedTimestamp
+  );
 
   return { getImageData };
 };

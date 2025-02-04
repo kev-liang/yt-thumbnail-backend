@@ -147,13 +147,16 @@ const ImageDataRepo = () => {
     }
   };
 
-  interface LastItemUpdatedTimestampDBO extends DBO {}
+  interface LastItemUpdatedTimestampDBO extends DBO {
+    uploadTimestamp: string;
+  }
 
   const addLastItemUpdatedTimestamp = async (userId: string) => {
     const timestamp = new Date().toISOString();
     const lastItemUpdatedTimestamp: LastItemUpdatedTimestampDBO = {
       PK: `${consts.USER_PK_PREFIX}${userId}`,
-      SK: `${consts.LAST_ITEM_UPDATED_TIMESTAMP_PREFIX}${timestamp}`,
+      SK: consts.LAST_ITEM_UPDATED_TIMESTAMP_PREFIX,
+      uploadTimestamp: timestamp,
     };
 
     const lastItemUpdatedTimestampParams = {
@@ -164,6 +167,28 @@ const ImageDataRepo = () => {
     await awsService.addDataToDB(lastItemUpdatedTimestampParams);
   };
 
+  const getLastItemUpdatedTimestamp = async (userId: string) => {
+    const params = {
+      TableName: consts.IMAGE_DATA_DB_NAME,
+      KeyConditionExpression: 'PK = :pk AND SK = :sk',
+      ExpressionAttributeValues: {
+        ':pk': `${CONSTS.USER_PK_PREFIX}${userId}`,
+        ':sk': CONSTS.LAST_ITEM_UPDATED_TIMESTAMP_PREFIX,
+      },
+      ScanIndexForward: false, // Sort descending to get the latest timestamp
+    };
+
+    const { Items: lastUpdatedTimestampItem } = await awsService.query(
+      userId,
+      params
+    );
+    if (!lastUpdatedTimestampItem) return null;
+    // Extract timestamp from the SK
+    const timestamp = lastUpdatedTimestampItem[0].uploadTimestamp;
+    console.log('TIMESTMPA', timestamp);
+    return timestamp;
+  };
+
   return {
     getBaseImageData,
     addBaseImageData,
@@ -172,6 +197,7 @@ const ImageDataRepo = () => {
     deleteImageData,
     addExistingImageData,
     addLastItemUpdatedTimestamp,
+    getLastItemUpdatedTimestamp,
   };
 };
 
