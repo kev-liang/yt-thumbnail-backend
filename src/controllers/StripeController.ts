@@ -5,6 +5,7 @@ import { verifyToken } from './middleware/authMiddleware';
 import express from 'express';
 import { ImageData } from '../types';
 import ImageDataRepo from '../repo/ImageDataRepo';
+import { upgradeUser } from '../services/UserService';
 
 const stripe = new Stripe(config.STRIPE_API_KEY || '', {
   apiVersion: '2024-12-18.acacia',
@@ -75,24 +76,21 @@ const StripeController = (app: Express) => {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
-
-        // Payment is successful
-        console.log('Payment was successful:', session);
-
-        // Fulfill the purchase
-        const customerId = session.customer;
-        const sessionId = session.id;
-        const paymentStatus = session.payment_status;
         const userId = session.metadata?.userId;
+        if (!userId) {
+          res
+            .status(500)
+            .json({ error: 'No userId found in session metadata' });
+          return;
+        }
 
-        // Add your custom business logic here
+        upgradeUser(userId);
+        // TODO set up webhook
         break;
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        res.status(400).json({ error: `Unhandled event type: ${event.type}` });
     }
-
-    res.json({ received: true });
   };
 
   app.post(

@@ -42,3 +42,19 @@ export const getUser = async (userId: string) => {
 
   return awsService.query(userId, userParams);
 };
+
+export const upgradeUser = async (userId: string) => {
+  const userParams = {
+    TableName: consts.IMAGE_DATA_DB_NAME,
+    Key: {
+      PK: `${consts.USER_PK_PREFIX}${userId}`, // Updated Partition Key
+      SK: `${consts.USER_SK_PREFIX}`, // Updated Sort Key
+    },
+    UpdateExpression: 'SET isPaid = :isPaid',
+    ExpressionAttributeValues: {
+      ':isPaid': true,
+    },
+  };
+
+  return awsService.update(userParams);
+};
