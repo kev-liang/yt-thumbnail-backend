@@ -5,7 +5,7 @@ import { StringValue } from 'ms';
 
 export const generateJWT = (
   payload: object,
-  expiresIn: StringValue
+  expiresIn: StringValue | undefined
 ): string => {
   return jwt.sign(payload, config.GOOGLE_CLIENT_SECRET, {
     expiresIn,
@@ -27,23 +27,22 @@ export const authenticateUser = async (idToken: string) => {
       throw new Error('Invalid ID token');
     }
 
-    // Extract user information
-    const userId = payload.sub; // Google user ID (unique per user)
-    const email = payload.email; // User email
-    const name = payload.name; // Full name
-    const picture = payload.picture; // Profile picture (optional)
+    const userId = payload.sub;
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
 
-    // Create a custom payload for your JWT
     const customPayload = {
-      userId, // Use Google ID as the unique user identifier
+      userId,
       email,
       name,
       picture,
     };
 
-    // Generate your own JWT
-    const accessToken = generateJWT(customPayload, '1s');
-    const refreshToken = generateJWT(customPayload, '30d');
+    const accessToken = jwt.sign(customPayload, config.GOOGLE_CLIENT_SECRET, {
+      expiresIn: '1hr',
+    });
+    const refreshToken = jwt.sign(customPayload, config.GOOGLE_CLIENT_SECRET);
     return { accessToken, refreshToken, user: customPayload };
   } catch (err) {
     console.error('Error authenticating user:', err);
