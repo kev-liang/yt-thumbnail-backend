@@ -11,11 +11,12 @@ const AwsService = () => {
   const s3 = new aws.S3();
 
   const uploadFile = async (file: Express.Multer.File) => {
-    const params = {
+    const params: aws.S3.PutObjectRequest = {
       Bucket: 'yt-thumbnailer',
       Key: `${Date.now()}-${file.originalname}`,
       Body: file.buffer,
       ContentType: file.mimetype,
+      CacheControl: 'max-age=31536000',
     };
 
     try {
