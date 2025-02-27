@@ -1,4 +1,5 @@
 import CONSTS from '../helpers/consts';
+import logger from '../helpers/logger';
 import AwsService from '../services/AwsService';
 import { TitleItem } from '../types';
 import ImageDataRepo from './ImageDataRepo';
@@ -46,7 +47,7 @@ const TitleRepo = () => {
   ) => {
     const { Items } = await imageDataRepo.getSingleImageData(userId, imageId);
     if (!Items || Items.length === 0) {
-      console.error('No image data found', userId, imageId, titleId);
+      logger.error('No image data found', userId, imageId, titleId);
       return;
     }
     const singleImageData = Items[0];

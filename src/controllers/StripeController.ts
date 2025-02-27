@@ -4,8 +4,8 @@ import config from '../helpers/config';
 import { verifyToken } from './middleware/authMiddleware';
 import express from 'express';
 import { ImageData } from '../types';
-import ImageDataRepo from '../repo/ImageDataRepo';
 import { upgradeUser } from '../services/UserService';
+import logger from '../helpers/logger';
 
 const stripe = new Stripe(config.STRIPE_API_KEY || '', {
   apiVersion: '2024-12-18.acacia',
@@ -38,7 +38,6 @@ const getStripeConfig = (userId: string) => {
 };
 
 const StripeController = (app: Express) => {
-  const imageDataRepo = ImageDataRepo();
   interface CheckoutBody {
     imageData: ImageData[];
   }
@@ -68,7 +67,7 @@ const StripeController = (app: Express) => {
         config.WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error('Webhook signature verification failed:', err);
+      logger.error('Webhook signature verification failed:', err);
       res.status(400).send(`Webhook Error: ${err}`);
       return;
     }

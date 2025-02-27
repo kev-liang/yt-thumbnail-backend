@@ -4,6 +4,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { DBO, ImageData, ImageDataDBO } from '../types';
 import { convertBase64ToFile } from '../helpers/fileHelper';
 import consts from '../helpers/consts';
+import logger from '../helpers/logger';
 
 const ImageDataRepo = () => {
   const awsService = AwsService();
@@ -185,7 +186,7 @@ const ImageDataRepo = () => {
     if (!lastUpdatedTimestampItem) return null;
     // Extract timestamp from the SK
     const timestamp = lastUpdatedTimestampItem[0].uploadTimestamp;
-    console.log('TIMESTMPA', timestamp);
+    logger.info('TIMESTMPA', timestamp);
     return timestamp;
   };
 

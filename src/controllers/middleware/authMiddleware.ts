@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import config from '../../helpers/config';
 import { User } from '../../types';
+import logger from '../../helpers/logger';
 
 export const verifyToken = (
   req: Request,
@@ -15,14 +16,13 @@ export const verifyToken = (
     res.status(400).json({ error: 'Authorization token missing' });
     return;
   }
-  console.log('GOT TOKEN', token);
 
   // 2. Verify the token
   jwt.verify(token, config.GOOGLE_CLIENT_SECRET, (err, decoded) => {
     if (err || !decoded) {
+      logger.error('Error verifying token');
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
-    console.log('decoded', decoded);
 
     // 3. Attach the decoded data to the request (optional)
     req.user = decoded as User;

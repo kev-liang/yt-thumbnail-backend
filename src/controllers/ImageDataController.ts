@@ -2,6 +2,7 @@ import { Request, Response, type Express } from 'express';
 import ImageDataRepo from '../repo/ImageDataRepo';
 import FileRepo from '../repo/FileRepo';
 import { verifyToken } from './middleware/authMiddleware';
+import logger from '../helpers/logger';
 
 const ImageDataController = (app: Express) => {
   const imageDataRepo = ImageDataRepo();
@@ -17,7 +18,7 @@ const ImageDataController = (app: Express) => {
       const data = await imageDataRepo.getImageData(userId);
       res.status(200).json(data);
     } catch (error) {
-      console.error(`Error getting image data for user: ${userId}`);
+      logger.error(`Error getting image data for user: ${userId}`);
       res.status(500).json({
         message: `Error getting image data for user: ${userId}`,
         error,

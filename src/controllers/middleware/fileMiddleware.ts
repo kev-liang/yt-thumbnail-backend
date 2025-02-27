@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { fromBuffer } from 'file-type';
 import NodeClam from 'clamscan';
 import { Readable } from 'stream';
+import logger from '../../helpers/logger';
 
 export const upload = multer({
   storage: multer.memoryStorage(),
@@ -42,7 +43,7 @@ export const validateFileType = (allowedTypes: string[]) => {
 
       next();
     } catch (error) {
-      console.error(error);
+      logger.error(`Error validating file type for user: ${req.user}.`, error);
       res.status(500).json({ error: 'Internal server error!' });
       return;
     }
@@ -62,9 +63,9 @@ let clam: NodeClam | null = null;
       },
       // debugMode: true, // Enable debug mode for troubleshooting
     });
-    console.log('ClamAV initialized successfully on Windows!');
+    logger.info('ClamAV initialized successfully on Windows!');
   } catch (error) {
-    console.error('Failed to initialize ClamAV:', error);
+    logger.error('Failed to initialize ClamAV:', error);
   }
 })();
 
@@ -87,15 +88,14 @@ export const scanFile = async (
     const result = await clam.scanStream(Readable.from(req.file.buffer));
 
     if (result.isInfected) {
-      console.log('Infected file detected');
+      logger.error(`Infected file. User: ${req.user}.`, req.file.filename);
       res.status(400).json({ error: 'File is infected' });
       return;
     }
 
-    console.log('File is clean!');
     next();
   } catch (error) {
-    console.error('Error scanning file:', error);
+    logger.error(`Error scanning file. User: ${req.user}:`, error);
     res.status(500).json({ error: 'Error scanning file' });
   }
 };

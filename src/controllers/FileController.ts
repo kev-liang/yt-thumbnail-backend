@@ -7,6 +7,7 @@ import {
   scanFile,
 } from './middleware/fileMiddleware';
 import { verifyToken } from './middleware/authMiddleware';
+import logger from '../helpers/logger';
 
 const FileController = (app: Express) => {
   const awsService = AwsService();
@@ -15,11 +16,11 @@ const FileController = (app: Express) => {
   const uploadFile = async (req: Request, res: Response) => {
     if (!req.user?.userId || !req.file) return;
     const { userId } = req.user;
-    console.log('Uploading file:', { ...req.file, buffer: undefined });
+    logger.info('Uploading file:', { ...req.file }, 'User', userId);
     try {
       const data = await awsService.uploadFile(req.file);
       if (data) {
-        console.log('Uploaded', data);
+        logger.info('Uploaded', data);
 
         imageDataRepo.addBaseImageData(userId, data);
 
@@ -30,7 +31,7 @@ const FileController = (app: Express) => {
         throw Error('No data returned from s3');
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
+      logger.error('Error uploading file:', error);
       res.status(500).json({ message: 'Error uploading file', error });
     }
   };
@@ -41,13 +42,14 @@ const FileController = (app: Express) => {
     const { imageData: imageDataJsonString } = req.body;
     const imageData = JSON.parse(imageDataJsonString);
     try {
+      logger.info('Uploading all images for user:', userId);
       await imageDataRepo.addExistingImageData(userId, req.file, imageData);
 
       res.status(200).json({
         imageData,
       });
     } catch (error) {
-      console.error('Error uploading file:', error);
+      logger.error('Error uploading file:', error);
       res.status(500).json({ message: 'Error uploading file', error });
     }
   };

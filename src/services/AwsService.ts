@@ -1,5 +1,6 @@
 import aws from 'aws-sdk';
 import CONSTS from '../helpers/consts';
+import logger from '../helpers/logger';
 
 const AwsService = () => {
   aws.config.update({
@@ -21,10 +22,10 @@ const AwsService = () => {
 
     try {
       const data = await s3.upload(params).promise();
-      console.log('Uploaded', data);
+      logger.info('Uploaded', data);
       return data;
     } catch (err) {
-      console.error('Error uploading file:', err);
+      logger.error('Error uploading file:', err);
     }
   };
 
@@ -33,10 +34,10 @@ const AwsService = () => {
   ) => {
     try {
       const res = await dynamoDB.put(params).promise();
-      console.log('Uploaded', res);
+      logger.info('Uploaded', res);
       return res;
     } catch (err) {
-      console.error('Error uploading:', err);
+      logger.error('Error uploading:', err);
     }
   };
 
@@ -47,7 +48,7 @@ const AwsService = () => {
       const data = await dynamoDB.batchGet(params).promise();
       return data;
     } catch (error) {
-      console.error('Error batch get:', error);
+      logger.error('Error batch get:', error);
     }
   };
 
@@ -56,10 +57,10 @@ const AwsService = () => {
   ) => {
     try {
       const res = await dynamoDB.update(params).promise();
-      console.log('Updated item:', res);
+      logger.info('Updated item:', res);
       return res;
     } catch (err) {
-      console.error('Error updating item:', err);
+      logger.error('Error updating item:', err);
     }
   };
 
@@ -69,10 +70,10 @@ const AwsService = () => {
   ) => {
     try {
       const data = await dynamoDB.query(params).promise();
-      console.log(`Successfully got data for ${userId}: ${data.Items}`);
+      logger.info(`Successfully got data for ${userId}`);
       return data;
     } catch (err) {
-      console.error('Error querying:', err);
+      logger.error('Error querying:', err);
       throw err;
     }
   };
@@ -84,7 +85,7 @@ const AwsService = () => {
       const data = await dynamoDB.batchWrite(params).promise();
       return data;
     } catch (err) {
-      console.error('Error batch write:', err);
+      logger.error('Error batch write:', err);
       throw err;
     }
   };
@@ -92,9 +93,9 @@ const AwsService = () => {
   const deleteS3Objects = async (params: aws.S3.DeleteObjectsRequest) => {
     try {
       const response = await s3.deleteObjects(params).promise();
-      console.log('Successfully deleted s3 object:', response.Deleted);
+      logger.info('Successfully deleted s3 object:', response.Deleted);
     } catch (err) {
-      console.error('Error deleting s3 object: ', err);
+      logger.error('Error deleting s3 object: ', err);
       throw err;
     }
   };

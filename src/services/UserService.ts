@@ -47,8 +47,8 @@ export const upgradeUser = async (userId: string) => {
   const userParams = {
     TableName: consts.IMAGE_DATA_DB_NAME,
     Key: {
-      PK: `${consts.USER_PK_PREFIX}${userId}`, // Updated Partition Key
-      SK: `${consts.USER_SK_PREFIX}`, // Updated Sort Key
+      PK: `${consts.USER_PK_PREFIX}${userId}`,
+      SK: `${consts.USER_SK_PREFIX}`,
     },
     UpdateExpression: 'SET isPaid = :isPaid',
     ExpressionAttributeValues: {

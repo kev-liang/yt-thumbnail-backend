@@ -2,6 +2,7 @@ import config from './config';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { StringValue } from 'ms';
+import logger from './logger';
 
 export const generateJWT = (
   payload: object,
@@ -45,7 +46,7 @@ export const authenticateUser = async (idToken: string) => {
     const refreshToken = jwt.sign(customPayload, config.GOOGLE_CLIENT_SECRET);
     return { accessToken, refreshToken, user: customPayload };
   } catch (err) {
-    console.error('Error authenticating user:', err);
+    logger.error('Error authenticating user:', err);
     throw new Error('Authentication failed');
   }
 };

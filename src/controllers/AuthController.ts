@@ -7,6 +7,7 @@ import {
   verifyRefreshToken,
 } from '../helpers/authHelper';
 import { verifyToken } from './middleware/authMiddleware';
+import logger from '../helpers/logger';
 
 const AuthController = (app: Express) => {
   const authenticateUserWithCode = async (req: Request, res: Response) => {
@@ -35,7 +36,7 @@ const AuthController = (app: Express) => {
       const userPayload = await authenticateUser(response.data.id_token);
       res.json({ ...userPayload });
     } catch (error) {
-      console.error('Error during token exchange:', error);
+      console.error(`Error during token exchange. User: ${req.user}.`, error);
       res.status(500).json({ error: 'Error during OAuth token exchange' });
     }
   };
@@ -56,7 +57,6 @@ const AuthController = (app: Express) => {
 
   const refreshTokenHandler = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
-    console.log('REFRESHING', refreshToken);
 
     if (!refreshToken) {
       res.status(400).json({ error: 'Refresh token is required' });
@@ -86,6 +86,7 @@ const AuthController = (app: Express) => {
         refreshToken: newRefreshToken,
       });
     } catch (error) {
+      logger.error('Invalid refresh token');
       res.status(401).json({ error: 'Invalid refresh token' });
     }
   };
