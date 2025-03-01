@@ -14,6 +14,7 @@ const AuthController = (app: Express) => {
     const { code } = req.body;
 
     if (!code) {
+      logger.error('No code given');
       res.status(400).json({ error: 'Authorization code is missing' });
       return;
     }

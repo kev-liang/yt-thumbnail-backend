@@ -12,9 +12,21 @@ import StripeController from './controllers/StripeController';
 import UserController from './controllers/UserController';
 import { loggerContext } from './controllers/middleware/logMiddleware';
 import logger from './helpers/logger';
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
 
 const app = express();
-const port = 5000;
+const options = {
+  key: fs.readFileSync(path.join(__dirname, '../ssl/key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, '../ssl/cert.pem')),
+  requestCert: false,
+  rejectUnauthorized: false,
+};
+
+const server = https.createServer(options, app);
+import { initializeWebSocket } from './socket/socket';
+initializeWebSocket(server);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
@@ -28,6 +40,8 @@ ImageDataController(app);
 AuthController(app);
 UserController(app);
 
-app.listen(port, () => {
-  logger.info(`Server is running on http://localhost:${port}`);
+const port = 5000;
+
+server.listen(port, () => {
+  console.log(`Socket is running on http://localhost:${port}`);
 });

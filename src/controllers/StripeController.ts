@@ -6,8 +6,12 @@ import express from 'express';
 import { ImageData } from '../types';
 import { upgradeUser } from '../services/UserService';
 import logger from '../helpers/logger';
+import { verifyStripe } from './middleware/stripeMiddleware';
+// import { getIO } from '../socket/socket';
+import consts from '../helpers/consts';
+import { getWebSocketServer } from '../socket/socket';
 
-const stripe = new Stripe(config.STRIPE_API_KEY || '', {
+export const stripe = new Stripe(config.STRIPE_API_KEY || '', {
   apiVersion: '2024-12-18.acacia',
 });
 
@@ -57,21 +61,12 @@ const StripeController = (app: Express) => {
   };
 
   const checkoutSuccess = async (req: Request, res: Response) => {
-    const sig = req.headers['stripe-signature'];
-    let event: Stripe.Event;
-
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig as string,
-        config.WEBHOOK_SECRET
-      );
-    } catch (err) {
-      logger.error('Webhook signature verification failed:', err);
-      res.status(400).send(`Webhook Error: ${err}`);
-      return;
-    }
-
+    let { event } = res.locals;
+    if (!event) return;
+    logger.info('Checkout success');
+    const socket = getWebSocketServer();
+    socket.emit(consts.SOCKET_PAID);
+    console.log('STRIPPPING');
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
@@ -95,6 +90,7 @@ const StripeController = (app: Express) => {
   app.post(
     '/checkout-success',
     express.raw({ type: 'application/json' }),
+    verifyStripe,
     checkoutSuccess
   );
   app.use(express.json());
